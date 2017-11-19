@@ -65,7 +65,7 @@ module OpCL(rst, op, pwr, opsel);
   
    Decoder #(1,2) dec12(rst, dec12Out);
    Decoder #(4,16) dec416(op, dec416Out);
-   Mux2 #(10) m(10'b1000000000, {1'b0, dec416Out[8:0]} & {10{pwr}}, dec12Out, opsel);
+   Mux2 #(10) m(10'b1000000000, {1'b0, {dec416Out[8:1] & {8{pwr}}, !pwr}}, dec12Out, opsel);
 endmodule // OpCL
 
 module PwrCL(rst, on, off, pwrsel);
