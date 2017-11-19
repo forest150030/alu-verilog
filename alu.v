@@ -44,16 +44,18 @@ module Mux10(a9, a8, a7, a6, a5, a4, a3, a2, a1, a0, s, b);
    input [9:0] s ; // one-hot select
    output [k-1:0] b ;
    
-   assign b = ({k{s[9]}} & a9) |
-              ({k{s[8]}} & a8) |
-              ({k{s[7]}} & a7) |
-              ({k{s[6]}} & a6) |
-              ({k{s[5]}} & a5) |
-              ({k{s[4]}} & a4) |
-              ({k{s[3]}} & a3) |
-              ({k{s[2]}} & a2) |
-              ({k{s[1]}} & a1) |
-              ({k{s[0]}} & a0);
+   assign b = ((s != 10'b0) ? 
+	       ({k{s[9]}} & a9) | 
+	       ({k{s[8]}} & a8) | 
+	       ({k{s[7]}} & a7) | 
+	       ({k{s[6]}} & a6) | 
+	       ({k{s[5]}} & a5) | 
+	       ({k{s[4]}} & a4) | 
+	       ({k{s[3]}} & a3) | 
+	       ({k{s[2]}} & a2) |
+	       ({k{s[1]}} & a1) | 
+	       ({k{s[0]}} & a0) : 
+	       a0);
 endmodule // Mux10
 
 module OpCL(rst, op, pwr, opsel);
@@ -65,7 +67,7 @@ module OpCL(rst, op, pwr, opsel);
   
    Decoder #(1,2) dec12(rst, dec12Out);
    Decoder #(4,16) dec416(op, dec416Out);
-   Mux2 #(10) m(10'b1000000000, {1'b0, {dec416Out[8:1] & {8{pwr}}, !pwr}}, dec12Out, opsel);
+   Mux2 #(10) m(10'b1000000000, {{1'b0, dec416Out[8:1] & {8{pwr}}}, 1'b0}, dec12Out, opsel);
 endmodule // OpCL
 
 module PwrCL(rst, on, off, pwrsel);
@@ -152,14 +154,22 @@ module xorrer(Num1,Num2,out);
    assign out = Num1 ^ Num2;
 endmodule // xorrer
 
-`define LOAD 4'b0001; 
-`define NOT  4'b0010; 
-`define XOR  4'b0011; 
-`define OR   4'b0100; 
-`define AND  4'b0101; 
-`define SUB  4'b0110; 
-`define ADD  4'b0111; 
-`define	MULT 4'b1000;
+`define NOP0   4'b0000;
+`define LOAD   4'b0001; 
+`define NOT    4'b0010; 
+`define XOR    4'b0011; 
+`define OR     4'b0100; 
+`define AND    4'b0101; 
+`define SUB    4'b0110; 
+`define ADD    4'b0111; 
+`define	MULT   4'b1000;
+`define NOP9   4'b1001;
+`define NOP10  4'b1010;
+`define NOP11  4'b1011;
+`define NOP12  4'b1100;
+`define NOP13  4'b1101;
+`define NOP14  4'b1110;
+`define NOP15  4'b1111;
 
 module TestBench;
    parameter n=8;
@@ -179,7 +189,7 @@ module TestBench;
       $display("|-----+-----+--------+--------+---------+--+---+---+---+---+");
       forever
 	begin
-	   $display("|    %b|    %b|%b|%b|%b %s| %b|  %b|%d|%d|  %b|", clk, rst, in, out, op, 
+	   $display("|    %b|    %b|%b|%b|%b %s| %b|  %b|%d|%d|  %b|", clk, rst, in, out, op,
 		     ((op == 4'b0001) ? "LOAD" : 
 		      ((op == 4'b0010) ? "NOT" : 
 		       ((op == 4'b0011) ? "XOR" : 
@@ -187,9 +197,9 @@ module TestBench;
 			 ((op == 4'b0101) ? "AND" : 
 			  ((op == 4'b0110) ? "SUB" : 
 			   ((op == 4'b0111) ? "ADD" : 
-			    ((op == 4'b1000) ? "MULT" : "????")))))))), on, off, in, out, ayy.powerMuxOut);
+			    ((op == 4'b1000) ? "MULT" : "NOP")))))))), on, off, in, out, ayy.powerMuxOut);
            #5 clk = 1 ; 
-	   $display("|    %b|    %b|%b|%b|%b %s| %b|  %b|%d|%d|  %b|", clk, rst, in, out, op, 
+	   $display("|    %b|    %b|%b|%b|%b %s| %b|  %b|%d|%d|  %b|", clk, rst, in, out, op,
 		     ((op == 4'b0001) ? "LOAD" : 
 		      ((op == 4'b0010) ? "NOT" : 
 		       ((op == 4'b0011) ? "XOR" : 
@@ -197,42 +207,42 @@ module TestBench;
 			 ((op == 4'b0101) ? "AND" : 
 			  ((op == 4'b0110) ? "SUB" : 
 			   ((op == 4'b0111) ? "ADD" : 
-			    ((op == 4'b1000) ? "MULT" : "????")))))))), on, off, in, out, ayy.powerMuxOut);
+			    ((op == 4'b1000) ? "MULT" : "NOP")))))))), on, off, in, out, ayy.powerMuxOut);
 	   #5 clk = 0 ;
 	end
    end
    // input stimuli
    initial begin
-      rst = 0; op = `ADD; in = 8'b00000000; on = 0; off = 0;
+      rst = 0; op = `NOP0; in = 8'b00000000; on = 0; off = 0;
       #10
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 1 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00010000; on = 0; off = 1;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000110; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000010; on = 1; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000010; on = 0; off = 0;
-      #10 rst = 0 ; op = `SUB  ; in = 8'b00000100; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000110; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `SUB  ; in = 8'b00000001; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `MULT ; in = 8'b00000100; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000110; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `OR   ; in = 8'b00001010; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOT  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `XOR  ; in = 8'b01001001; on = 0; off = 0;
-      #10 rst = 0 ; op = `LOAD ; in = 8'b11111111; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 1;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00101001; on = 0; off = 0;
-      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 1 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00010000; on = 0; off = 1;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000110; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000010; on = 1; off = 0;
+      #10 rst = 0 ; op = `NOP0   ; in = 8'b00000010; on = 0; off = 0;
+      #10 rst = 0 ; op = `SUB    ; in = 8'b00000100; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP0    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000110; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP9   ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP10  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP11  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP12  ; in = 8'b00000001; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP13  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `MULT   ; in = 8'b00000100; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP14  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOP15  ; in = 8'b00000110; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `OR     ; in = 8'b00001010; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `NOT    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `XOR    ; in = 8'b01001001; on = 0; off = 0;
+      #10 rst = 0 ; op = `LOAD   ; in = 8'b11111111; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 1;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00101001; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD    ; in = 8'b00000000; on = 0; off = 0;
       #10 $finish ;
       $stop;
    end
