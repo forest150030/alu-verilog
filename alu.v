@@ -152,7 +152,6 @@ module xorrer(Num1,Num2,out);
    assign out = Num1 ^ Num2;
 endmodule // xorrer
 
-`define NOP  4'b0000;
 `define LOAD 4'b0001; 
 `define NOT  4'b0010; 
 `define XOR  4'b0011; 
@@ -181,7 +180,6 @@ module TestBench;
       forever
 	begin
 	   $display("|    %b|    %b|%b|%b|%b %s| %b|  %b|%d|%d|  %b|", clk, rst, in, out, op, 
-		    ((op == 4'b0000) ? "NOP" : 
 		     ((op == 4'b0001) ? "LOAD" : 
 		      ((op == 4'b0010) ? "NOT" : 
 		       ((op == 4'b0011) ? "XOR" : 
@@ -189,10 +187,9 @@ module TestBench;
 			 ((op == 4'b0101) ? "AND" : 
 			  ((op == 4'b0110) ? "SUB" : 
 			   ((op == 4'b0111) ? "ADD" : 
-			    ((op == 4'b1000) ? "MULT" : "????"))))))))), on, off, in, out, ayy.powerMuxOut);
+			    ((op == 4'b1000) ? "MULT" : "????")))))))), on, off, in, out, ayy.powerMuxOut);
            #5 clk = 1 ; 
 	   $display("|    %b|    %b|%b|%b|%b %s| %b|  %b|%d|%d|  %b|", clk, rst, in, out, op, 
-		    ((op == 4'b0000) ? "NOP" : 
 		     ((op == 4'b0001) ? "LOAD" : 
 		      ((op == 4'b0010) ? "NOT" : 
 		       ((op == 4'b0011) ? "XOR" : 
@@ -200,42 +197,42 @@ module TestBench;
 			 ((op == 4'b0101) ? "AND" : 
 			  ((op == 4'b0110) ? "SUB" : 
 			   ((op == 4'b0111) ? "ADD" : 
-			    ((op == 4'b1000) ? "MULT" : "????"))))))))), on, off, in, out, ayy.powerMuxOut);
+			    ((op == 4'b1000) ? "MULT" : "????")))))))), on, off, in, out, ayy.powerMuxOut);
 	   #5 clk = 0 ;
 	end
    end
    // input stimuli
    initial begin
-      rst = 0; op = `NOP; in = 8'b00000000; on = 0; off = 0;
+      rst = 0; op = `ADD; in = 8'b00000000; on = 0; off = 0;
       #10
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 1 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 1 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `ADD  ; in = 8'b00010000; on = 0; off = 1;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000110; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000110; on = 0; off = 0;
       #10 rst = 0 ; op = `ADD  ; in = 8'b00000010; on = 1; off = 0;
       #10 rst = 0 ; op = `ADD  ; in = 8'b00000010; on = 0; off = 0;
       #10 rst = 0 ; op = `SUB  ; in = 8'b00000100; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `ADD  ; in = 8'b00000110; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `SUB  ; in = 8'b00000001; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `MULT ; in = 8'b00000100; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `AND  ; in = 8'b00000110; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000110; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `OR   ; in = 8'b00001010; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `NOT  ; in = 8'b00000000; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `XOR  ; in = 8'b01001001; on = 0; off = 0;
       #10 rst = 0 ; op = `LOAD ; in = 8'b11111111; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 1;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 1;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 rst = 0 ; op = `ADD  ; in = 8'b00101001; on = 0; off = 0;
-      #10 rst = 0 ; op = `NOP  ; in = 8'b00000000; on = 0; off = 0;
+      #10 rst = 0 ; op = `ADD  ; in = 8'b00000000; on = 0; off = 0;
       #10 $finish ;
       $stop;
    end
